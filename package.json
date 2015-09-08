@@ -1,7 +1,7 @@
 {
   "name": "mpx-bee",
   "description": "npm module to zip local static files and deposit them on AWS S3",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -14,12 +14,12 @@
       "email": "dbldots@gmail.com"
     }
   ],
-  "main": "build/mpx-bee.js",
+  "main": "./build/mpx-bee.js",
   "scripts": {
     "build": "coffee -o build/ -c src/"
   },
   "bin": {
-    "mpx-bee": "bin/mpx-bee.js"
+    "mpx-bee": "./bin/mpx-bee"
   },
   "engines": {
     "node": ">= 0.8.0"
