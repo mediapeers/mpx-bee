@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+
+var path   = require('path');
+var fs     = require('fs');
+var build  = path.join(path.dirname(fs.realpathSync(__filename)), '../build');
+
+require(build + '/mpx-bee').run();
