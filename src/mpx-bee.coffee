@@ -6,7 +6,7 @@ util      = require('util')
 fs        = require('fs')
 glob      = require('glob')
 path      = require('path')
-Promise   = require("bluebird")
+Promise   = require('bluebird')
 MIM       = require('mim')
 
 printLine = (line) -> process.stdout.write line + '\n'
