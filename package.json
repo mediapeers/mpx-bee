@@ -1,0 +1,39 @@
+{
+  "name": "mpx-bee",
+  "description": "npm module to zip local static files and deposit them on AWS S3",
+  "version": "0.0.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mediapeers/mpx-bee.git"
+  },
+  "author": "mediapeers GmbH <info@mediapeers.com> (http://mediapeers.com/)",
+  "contributors": [
+    {
+      "name": "Johannes-Kostas Götzinger",
+      "email": "dbldots@gmail.com"
+    }
+  ],
+  "main": "build-js/mpx-bee.js",
+  "scripts": {
+    "build": "coffee -o build/ -c src/"
+  },
+  "bin": {
+    "mpx-bee": "build/mpx-bee.js"
+  },
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "devDependencies": {
+    "coffee-script": "^1.10.0"
+  },
+  "dependencies": {
+    "archiver": "^0.15.0",
+    "aws-promised": "^2.4.0",
+    "bluebird": "^2.9.34",
+    "glob": "^5.0.14",
+    "lodash": "^3.10.1",
+    "mim": "^0.3.1",
+    "optparse": "^1.0.5"
+  }
+}
