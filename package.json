@@ -11,7 +11,7 @@
   "contributors": [
     {
       "name": "Johannes-Kostas Götzinger",
-      "email": "dbldots@gmail.com"
+      "email": "goetzinger@mediapeers.com"
     }
   ],
   "main": "./build/mpx-bee.js",
@@ -29,11 +29,13 @@
   },
   "dependencies": {
     "archiver": "^0.15.0",
-    "aws-promised": "^2.4.0",
-    "bluebird": "^2.9.34",
+    "aws-promised": "^2.10.0",
+    "bluebird": "^3.2.1",
     "glob": "^5.0.14",
     "lodash": "^3.10.1",
     "mim": "^0.3.1",
-    "optparse": "^1.0.5"
+    "optparse": "^1.0.5",
+    "md5-file": "^2.0.0",
+    "bluebird-retry": "^0.5.3"
   }
 }

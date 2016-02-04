@@ -8,6 +8,8 @@ glob      = require('glob')
 path      = require('path')
 Promise   = require('bluebird')
 MIM       = require('mim')
+md5File   = require('md5-file')
+retry     = require('bluebird-retry')
 
 printLine = (line) -> process.stdout.write line + '\n'
 printWarn = (line) -> process.stderr.write line + '\n'
@@ -132,7 +134,7 @@ backupFiles = ->
           promise.then -> process.stdout.write '.'
           promises.push promise
 
-        Promise.settle(promises).then ->
+        Promise.all(promises).then ->
           process.stdout.write ' - done!\n'
           keyPrefix = path.join(opts.targetDir, '/')
           clearFiles(keyPrefix).then -> resolve()
@@ -170,21 +172,29 @@ uploadFiles = ->
 
   process.stdout.write 'Uploading'
   for file in opts.files
-    targetFile = file.replace path.join(opts.source, '/'), ''
-    targetKey  = path.join opts.targetDir, targetFile
+    doUpload = (_file) ->
+      ->
+        targetFile = _file.replace path.join(opts.source, '/'), ''
+        targetKey  = path.join opts.targetDir, targetFile
+        md5        = md5File(_file)
 
-    params =
-      Bucket: opts.bucket,
-      Key: targetKey,
-      Body: fs.createReadStream(file),
-      ACL: 'public-read',
+        params =
+          Bucket: opts.bucket,
+          Key: targetKey,
+          Body: fs.createReadStream(_file),
+          ACL: 'public-read',
 
-    if mime = MIM.getMIMEType(file)
-      params['ContentType'] = MIM.getMIMEType(file)
+        if mime = MIM.getMIMEType(_file)
+          params['ContentType'] = mime
 
-    promise = s3.putObjectPromised(params)
+        s3.putObjectPromised(params).then (data) ->
+          etag = data['ETag'].replace(/[^a-z0-9]/ig, '')
+          if md5 != etag
+            throw new Error("MD5 did not match for #{_file}") 
 
-    onSuccess = ->
+    promise = retry(doUpload(file), max_tries: 3)
+
+    onSuccess = (data) ->
       process.stdout.write '.'
 
     onError = (error) ->
@@ -194,5 +204,5 @@ uploadFiles = ->
     promise.then onSuccess, onError
     promises.push promise
 
-  Promise.settle(promises).then ->
+  Promise.all(promises).then ->
     process.stdout.write ' - done!\n'
