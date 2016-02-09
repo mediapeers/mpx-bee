@@ -8,8 +8,6 @@ glob      = require('glob')
 path      = require('path')
 Promise   = require('bluebird')
 MIM       = require('mim')
-md5File   = require('md5-file')
-retry     = require('bluebird-retry')
 
 printLine = (line) -> process.stdout.write line + '\n'
 printWarn = (line) -> process.stderr.write line + '\n'
@@ -76,33 +74,40 @@ exports.run = ->
 
   fs.mkdirSync(TMPDIR) unless fs.existsSync(TMPDIR)
 
+  processFiles = ->
+    if opts.backup
+      backupFiles().then uploadFiles
+    else
+      keyPrefix = path.join(opts.targetDir, '/')
+      clearFiles(keyPrefix).then uploadFiles
+
   if opts.zip
-    createZip()
+    createZip().then processFiles
   else
     readFiles()
+    processFiles()
 
-  if opts.backup
-    backupFiles().then uploadFiles
-  else
-    keyPrefix = path.join(opts.targetDir, '/')
-    clearFiles(keyPrefix).then uploadFiles
 
 createZip = ->
-  # create zip
-  archive = archiver('zip')
-  output  = fs.createWriteStream(opts.zipfile)
+  new Promise (resolve, reject) ->
+    # create zip
+    archive = archiver('zip')
+    output  = fs.createWriteStream(opts.zipfile)
 
-  archive.pipe(output)
-  archive.bulk([
-    src: ["**/*"],
-    expand: true,
-    cwd: opts.source,
-    dot: true
-  ])
-  archive.finalize()
+    archive.pipe(output)
+    archive.bulk([
+      src: ["**/*"],
+      expand: true,
+      cwd: opts.source,
+      dot: true
+    ])
+    archive.on 'finish', -> resolve()
+    archive.on 'error', -> reject()
 
-  opts.source = path.dirname(opts.zipfile)
-  opts.files = [opts.zipfile]
+    archive.finalize()
+
+    opts.source = path.dirname(opts.zipfile)
+    opts.files = [opts.zipfile]
 
 readFiles = ->
   opts.files = glob.sync(
@@ -172,29 +177,21 @@ uploadFiles = ->
 
   process.stdout.write 'Uploading'
   for file in opts.files
-    doUpload = (_file) ->
-      ->
-        targetFile = _file.replace path.join(opts.source, '/'), ''
-        targetKey  = path.join opts.targetDir, targetFile
-        md5        = md5File(_file)
+    targetFile = file.replace path.join(opts.source, '/'), ''
+    targetKey  = path.join opts.targetDir, targetFile
 
-        params =
-          Bucket: opts.bucket,
-          Key: targetKey,
-          Body: fs.createReadStream(_file),
-          ACL: 'public-read',
+    params =
+      Bucket: opts.bucket,
+      Key: targetKey,
+      Body: fs.createReadStream(file),
+      ACL: 'public-read',
 
-        if mime = MIM.getMIMEType(_file)
-          params['ContentType'] = mime
+    if mime = MIM.getMIMEType(file)
+      params['ContentType'] = MIM.getMIMEType(file)
 
-        s3.putObjectPromised(params).then (data) ->
-          etag = data['ETag'].replace(/[^a-z0-9]/ig, '')
-          if md5 != etag
-            throw new Error("MD5 did not match for #{_file}") 
+    promise = s3.putObjectPromised(params)
 
-    promise = retry(doUpload(file), max_tries: 3)
-
-    onSuccess = (data) ->
+    onSuccess = ->
       process.stdout.write '.'
 
     onError = (error) ->

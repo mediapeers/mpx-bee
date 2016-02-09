@@ -34,8 +34,6 @@
     "glob": "^5.0.14",
     "lodash": "^3.10.1",
     "mim": "^0.3.1",
-    "optparse": "^1.0.5",
-    "md5-file": "^2.0.0",
-    "bluebird-retry": "^0.5.3"
+    "optparse": "^1.0.5"
   }
 }
