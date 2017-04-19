@@ -63,15 +63,6 @@ exports.run = ->
 
   parser.parse(process.argv[2..])
 
-  missingArgs = _.any ['bucket', 'source'], (arg) ->
-    _.isEmpty(opts[arg])
-
-  if missingArgs
-    printLine 'REQUIRED ARGUMENTS MISSING!'
-    printLine ''
-    printLine parser.toString()
-    process.exit()
-
   fs.mkdirSync(TMPDIR) unless fs.existsSync(TMPDIR)
 
   processFiles = ->
