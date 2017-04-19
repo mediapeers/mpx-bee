@@ -63,7 +63,7 @@ exports.run = ->
 
   parser.parse(process.argv[2..])
 
-  missingArgs = _.any ['targetDir', 'bucket', 'source'], (arg) ->
+  missingArgs = _.any ['bucket', 'source'], (arg) ->
     _.isEmpty(opts[arg])
 
   if missingArgs
