@@ -48,8 +48,7 @@
   s3 = AWS.s3();
 
   exports.run = function() {
-    var missingArgs, parser, processFiles;
-    console.log('this sucks');
+    var parser, processFiles;
     parser = new optparse.OptionParser(SWITCHES);
     parser.on('help', function() {
       printLine(parser.toString());
@@ -74,15 +73,6 @@
       return opts.backup = true;
     });
     parser.parse(process.argv.slice(2));
-    missingArgs = _.any(['bucket', 'source'], function(arg) {
-      return _.isEmpty(opts[arg]);
-    });
-    if (missingArgs) {
-      printLine('REQUIRED ARGUMENTS MISSING!');
-      printLine('');
-      printLine(parser.toString());
-      process.exit();
-    }
     if (!fs.existsSync(TMPDIR)) {
       fs.mkdirSync(TMPDIR);
     }
