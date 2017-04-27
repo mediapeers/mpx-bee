@@ -44,3 +44,14 @@ this will
 * S3: check for files in '2015-09-08' and delete them
 * zip all files from your local folder 'dist_folder' into a zip with the filename 'release.zip'
 * upload the zip to S3 with the key '2015-09-08/release.zip'
+
+3.
+```
+AWS_PROFILE=mpx-staging node_modules/mpx-bee/bin/mpx-bee --input dist_folder --target '2015-09-08' --bucket 'your-bucket-name' --nozip --clean
+```
+
+this will
+* S3: delete all the bucket contents
+* upload all files from your local folder `dist_folder` to S3
+* ...using your staging credentials
+* ...and using a project-local (possibly even symlinked) copy of mpx-bee

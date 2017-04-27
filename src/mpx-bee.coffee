@@ -19,6 +19,7 @@ SWITCHES = [
   ['-t', '--target NAME',     "S3 key prefix (e.g. 'deploy/2015-04-01/'"],
   ['-n', '--nozip',           'disables zipping'],
   ['-a', '--archive',         'enables backup instead of overwriting'],
+  ['-c', '--clean',           'simply wipe the s3 bucket and upload (takes precedence over other options)'],
   ['-h', '--help',            'display this help message']
 ]
 
@@ -61,9 +62,12 @@ exports.run = ->
   parser.on 'archive', ->
     opts.backup = true
 
+  parser.on 'clean', ->
+    opts.clean = true
+
   parser.parse(process.argv[2..])
 
-  missingArgs = _.any ['targetDir', 'bucket', 'source'], (arg) ->
+  missingArgs = _.any ['bucket', 'source'], (arg) ->
     _.isEmpty(opts[arg])
 
   if missingArgs
@@ -72,12 +76,19 @@ exports.run = ->
     printLine parser.toString()
     process.exit()
 
+  if !opts.targetDir then opts.targetDir = '.'
+  
   fs.mkdirSync(TMPDIR) unless fs.existsSync(TMPDIR)
 
   processFiles = ->
-    if opts.backup
+    if opts.clean
+      console.log('clean')
+      clearFiles().then uploadFiles
+    else if opts.backup
+      console.log('backup')
       backupFiles().then uploadFiles
     else
+      console.log('else')
       keyPrefix = path.join(opts.targetDir, '/')
       clearFiles(keyPrefix).then uploadFiles
 
