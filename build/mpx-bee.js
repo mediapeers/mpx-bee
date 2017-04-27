@@ -30,7 +30,7 @@
     return process.stderr.write(line + '\n');
   };
 
-  SWITCHES = [['-i', '--input PATH', 'source folder'], ['-f', '--filename FILE', 'zip filename'], ['-b', '--bucket NAME', 'S3 bucket name'], ['-t', '--target NAME', "S3 key prefix (e.g. 'deploy/2015-04-01/'"], ['-n', '--nozip', 'disables zipping'], ['-a', '--archive', 'enables backup instead of overwriting'], ['-h', '--help', 'display this help message']];
+  SWITCHES = [['-i', '--input PATH', 'source folder'], ['-f', '--filename FILE', 'zip filename'], ['-b', '--bucket NAME', 'S3 bucket name'], ['-t', '--target NAME', "S3 key prefix (e.g. 'deploy/2015-04-01/'"], ['-n', '--nozip', 'disables zipping'], ['-a', '--archive', 'enables backup instead of overwriting'], ['-c', '--clean', 'simply wipe the s3 bucket and upload (takes precedence over other options)'], ['-h', '--help', 'display this help message']];
 
   TMPDIR = 'tmp';
 
@@ -72,6 +72,9 @@
     parser.on('archive', function() {
       return opts.backup = true;
     });
+    parser.on('clean', function() {
+      return opts.clean = true;
+    });
     parser.parse(process.argv.slice(2));
     missingArgs = _.any(['bucket', 'source'], function(arg) {
       return _.isEmpty(opts[arg]);
@@ -90,9 +93,14 @@
     }
     processFiles = function() {
       var keyPrefix;
-      if (opts.backup) {
+      if (opts.clean) {
+        console.log('clean');
+        return clearFiles().then(uploadFiles);
+      } else if (opts.backup) {
+        console.log('backup');
         return backupFiles().then(uploadFiles);
       } else {
+        console.log('else');
         keyPrefix = path.join(opts.targetDir, '/');
         return clearFiles(keyPrefix).then(uploadFiles);
       }
